@@ -14,7 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput 2>/dev/null || true
+ENV SECRET_KEY=build-time-placeholder
+RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
