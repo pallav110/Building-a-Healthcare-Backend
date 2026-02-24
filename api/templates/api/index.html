@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Backend Tester</title>
+    <link rel="stylesheet" href="{% static 'api/style.css' %}">
+</head>
+<body>
+    <h1>Healthcare Backend Tester</h1>
+
+    <div id="statusBar" class="status-bar logged-out">Not logged in. Register or login to get started.</div>
+
+    <!-- AUTH -->
+    <div class="auth-section">
+        <div class="card">
+            <h2>Register</h2>
+            <div id="registerMsg" class="msg"></div>
+            <label>Name</label>
+            <input type="text" id="regName" placeholder="John Doe">
+            <label>Email</label>
+            <input type="email" id="regEmail" placeholder="john@example.com">
+            <label>Password</label>
+            <input type="password" id="regPassword" placeholder="min 8 characters">
+            <button class="btn-primary" onclick="register()">Register</button>
+        </div>
+        <div class="card">
+            <h2>Login</h2>
+            <div id="loginMsg" class="msg"></div>
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="john@example.com">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="your password">
+            <button class="btn-success" onclick="login()">Login</button>
+            <button class="btn-danger btn-sm" onclick="logout()" style="margin-left:8px;" id="logoutBtn">Logout</button>
+        </div>
+    </div>
+
+    <!-- PROTECTED SECTIONS -->
+    <div id="protectedSections" class="hidden">
+
+        <!-- QUICK API ACTIONS -->
+        <div class="card api-toolbar">
+            <h2>API Endpoints</h2>
+            <div id="toolbarMsg" class="msg"></div>
+
+            <div class="toolbar-section">
+                <h3>Patients</h3>
+                <div class="toolbar-row">
+                    <button class="btn-info" onclick="btnGetAllPatients()">GET /api/patients/</button>
+                    <div class="toolbar-input-group">
+                        <input type="number" id="tbPatientId" placeholder="ID">
+                        <button class="btn-info" onclick="btnGetPatientById()">GET /api/patients/&lt;id&gt;/</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <h3>Doctors</h3>
+                <div class="toolbar-row">
+                    <button class="btn-info" onclick="btnGetAllDoctors()">GET /api/doctors/</button>
+                    <div class="toolbar-input-group">
+                        <input type="number" id="tbDoctorId" placeholder="ID">
+                        <button class="btn-info" onclick="btnGetDoctorById()">GET /api/doctors/&lt;id&gt;/</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <h3>Mappings</h3>
+                <div class="toolbar-row">
+                    <button class="btn-info" onclick="btnGetAllMappings()">GET /api/mappings/</button>
+                    <div class="toolbar-input-group">
+                        <input type="number" id="tbMappingPatientId" placeholder="Patient ID">
+                        <button class="btn-info" onclick="btnGetMappingsByPatient()">GET /api/mappings/&lt;patient_id&gt;/</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="toolbarResult"></div>
+        </div>
+
+        <!-- PATIENTS -->
+        <div class="card">
+            <h2>
+                Patients
+                <span class="btn-group">
+                    <button class="btn-info btn-sm" onclick="loadPatients()">GET /patients/</button>
+                    <button class="btn-primary btn-sm" onclick="toggleForm('patientForm')">+ Add Patient</button>
+                </span>
+            </h2>
+            <div id="patientMsg" class="msg"></div>
+            <div id="patientForm" class="hidden">
+                <div class="form-row">
+                    <div><label>Name *</label><input type="text" id="pName" placeholder="Jane Doe"></div>
+                    <div><label>Age *</label><input type="number" id="pAge" placeholder="30"></div>
+                    <div><label>Gender *</label>
+                        <select id="pGender"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div><label>Phone</label><input type="text" id="pPhone" placeholder="1234567890"></div>
+                    <div><label>Email</label><input type="email" id="pEmail" placeholder="jane@example.com"></div>
+                </div>
+                <label>Address</label>
+                <input type="text" id="pAddress" placeholder="123 Main St">
+                <label>Medical History</label>
+                <textarea id="pHistory" placeholder="Any relevant medical history..."></textarea>
+                <button class="btn-success" onclick="createPatient()">Save Patient</button>
+                <button class="btn-sm" onclick="toggleForm('patientForm')" style="margin-left:8px;">Cancel</button>
+            </div>
+            <table>
+                <thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+                <tbody id="patientTable"></tbody>
+            </table>
+            <div id="patientDetailArea"></div>
+            <div id="patientEditArea"></div>
+        </div>
+
+        <!-- DOCTORS -->
+        <div class="card">
+            <h2>
+                Doctors
+                <span class="btn-group">
+                    <button class="btn-info btn-sm" onclick="loadDoctors()">GET /doctors/</button>
+                    <button class="btn-primary btn-sm" onclick="toggleForm('doctorForm')">+ Add Doctor</button>
+                </span>
+            </h2>
+            <div id="doctorMsg" class="msg"></div>
+            <div id="doctorForm" class="hidden">
+                <div class="form-row">
+                    <div><label>Name *</label><input type="text" id="dName" placeholder="Dr. Smith"></div>
+                    <div><label>Specialization *</label><input type="text" id="dSpecial" placeholder="Cardiology"></div>
+                    <div><label>Experience (years)</label><input type="number" id="dExp" placeholder="5"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Phone</label><input type="text" id="dPhone" placeholder="1234567890"></div>
+                    <div><label>Email</label><input type="email" id="dEmail" placeholder="dr@hospital.com"></div>
+                </div>
+                <button class="btn-success" onclick="createDoctor()">Save Doctor</button>
+                <button class="btn-sm" onclick="toggleForm('doctorForm')" style="margin-left:8px;">Cancel</button>
+            </div>
+            <table>
+                <thead><tr><th>ID</th><th>Name</th><th>Specialization</th><th>Experience</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+                <tbody id="doctorTable"></tbody>
+            </table>
+            <div id="doctorDetailArea"></div>
+            <div id="doctorEditArea"></div>
+        </div>
+
+        <!-- MAPPINGS -->
+        <div class="card">
+            <h2>
+                Patient-Doctor Mappings
+                <span class="btn-group">
+                    <button class="btn-info btn-sm" onclick="loadMappings()">GET /mappings/</button>
+                    <button class="btn-primary btn-sm" onclick="toggleForm('mappingForm')">+ Assign</button>
+                </span>
+            </h2>
+            <div id="mappingMsg" class="msg"></div>
+            <div id="mappingForm" class="hidden">
+                <div class="form-row">
+                    <div>
+                        <label>Patient</label>
+                        <select id="mPatient"></select>
+                    </div>
+                    <div>
+                        <label>Doctor</label>
+                        <select id="mDoctor"></select>
+                    </div>
+                </div>
+                <button class="btn-success" onclick="createMapping()">Assign Doctor</button>
+                <button class="btn-sm" onclick="toggleForm('mappingForm')" style="margin-left:8px;">Cancel</button>
+            </div>
+            <div class="inline-form">
+                <div>
+                    <label>Lookup by Patient ID</label>
+                    <input type="number" id="mLookupPatient" placeholder="Patient ID">
+                </div>
+                <button class="btn-info btn-sm" onclick="viewMappingsByPatient()">GET /mappings/&lt;patient_id&gt;/</button>
+            </div>
+            <table>
+                <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Created</th><th>Actions</th></tr></thead>
+                <tbody id="mappingTable"></tbody>
+            </table>
+            <div id="mappingDetailArea"></div>
+        </div>
+    </div>
+
+    <!-- API Log Toggle Button -->
+    <button class="api-log-toggle-btn" onclick="toggleLogPanel()">
+        API Log <span id="logBadge" class="badge"></span>
+    </button>
+
+    <!-- API Log Overlay (click to close) -->
+    <div id="apiLogOverlay" class="api-log-overlay" onclick="toggleLogPanel()"></div>
+
+    <!-- API Request Log Side Panel -->
+    <div id="apiLogPanel" class="api-log">
+        <div class="api-log-header">
+            <span>API Request Log</span>
+            <div class="header-actions">
+                <button onclick="clearLog()">Clear</button>
+                <button class="close-btn" onclick="toggleLogPanel()">&times;</button>
+            </div>
+        </div>
+        <div id="apiLog" class="api-log-content">
+            <div class="log-empty">No requests yet. Interact with the API to see logs here.</div>
+        </div>
+    </div>
+
+    <script src="{% static 'api/app.js' %}"></script>
+</body>
+</html>
