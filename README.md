@@ -1,31 +1,142 @@
-# Healthcare Backend - Django REST API
+# Healthcare Backend
 
-A backend system for managing patients, doctors, and their assignments. Built with Django, DRF, PostgreSQL, and JWT auth.
+A full-stack healthcare management system built with Django REST Framework. Manage patients, doctors, and their assignments through a REST API with JWT authentication and a built-in frontend tester.
 
-## Setup
+## Demo
 
-### 1. Create a virtual environment and install packages
+https://github.com/user-attachments/assets/3138fd98-d79e-4672-9f14-d82ffeb1d600
+
+### Screenshots
+
+<details>
+<summary>Click to view screenshots</summary>
+
+#### Login & Registration
+<!-- Replace with your actual screenshot -->
+![Login Page](screenshots/login.png)
+
+#### Patient Management
+![Patients](screenshots/patients.png)
+
+#### Doctor Management
+![Doctors](screenshots/doctors.png)
+
+#### API Endpoints Toolbar
+![API Toolbar](screenshots/api-toolbar.png)
+
+#### Patient-Doctor Mappings
+![Mappings](screenshots/mappings.png)
+
+#### API Request Log Panel
+![API Log](screenshots/api-log.png)
+
+</details>
+
+---
+
+## Tech Stack
+
+| Layer          | Technology                          |
+|----------------|-------------------------------------|
+| Backend        | Django 5, Django REST Framework     |
+| Auth           | JWT (djangorestframework-simplejwt) |
+| Database       | PostgreSQL                          |
+| Frontend       | Vanilla HTML/CSS/JS (Django-served) |
+| Containerization | Docker & Docker Compose           |
+| Server         | Gunicorn (production)               |
+
+---
+
+## API Endpoints
+
+### Authentication (no token needed)
+
+| Method | Endpoint              | Description                     |
+|--------|-----------------------|---------------------------------|
+| POST   | /api/auth/register/   | Register (name, email, password)|
+| POST   | /api/auth/login/      | Login, returns JWT tokens       |
+
+### Patients (token required)
+
+| Method | Endpoint              | Description           |
+|--------|-----------------------|-----------------------|
+| POST   | /api/patients/        | Create a patient      |
+| GET    | /api/patients/        | List your patients    |
+| GET    | /api/patients/\<id\>/ | Get patient by ID     |
+| PUT    | /api/patients/\<id\>/ | Update a patient      |
+| DELETE | /api/patients/\<id\>/ | Delete a patient      |
+
+### Doctors (token required)
+
+| Method | Endpoint             | Description          |
+|--------|----------------------|----------------------|
+| POST   | /api/doctors/        | Create a doctor      |
+| GET    | /api/doctors/        | List all doctors     |
+| GET    | /api/doctors/\<id\>/ | Get doctor by ID     |
+| PUT    | /api/doctors/\<id\>/ | Update a doctor      |
+| DELETE | /api/doctors/\<id\>/ | Delete a doctor      |
+
+### Patient-Doctor Mappings (token required)
+
+| Method | Endpoint                      | Description                   |
+|--------|-------------------------------|-------------------------------|
+| POST   | /api/mappings/                | Assign a doctor to a patient  |
+| GET    | /api/mappings/                | List all mappings             |
+| GET    | /api/mappings/\<patient_id\>/ | Get doctors for a patient     |
+| DELETE | /api/mappings/\<id\>/         | Remove a mapping              |
+
+---
+
+## Getting Started
+
+### Option 1: Docker (Recommended)
+
+Just run one command — no need to install Python, PostgreSQL, or anything else.
 
 ```bash
+docker-compose up --build
+```
+
+Open `http://localhost:8000` in your browser. Done.
+
+To stop:
+```bash
+docker-compose down
+```
+
+### Option 2: Manual Setup
+
+#### Prerequisites
+- Python 3.10+
+- PostgreSQL
+
+#### Steps
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/YOUR_USERNAME/healthcare-backend.git
+cd healthcare-backend
+
+# 2. Create virtual environment
 python -m venv venv
-source venv/bin/activate        # on linux/mac
-venv\Scripts\activate           # on windows
+source venv/bin/activate        # Linux/Mac
+venv\Scripts\activate           # Windows
+
+# 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Create PostgreSQL database
+# In psql or pgAdmin:
+# CREATE DATABASE healthcare_db;
+
+# 5. Configure environment
+# Create a .env file in the project root:
 ```
 
-### 2. Setup PostgreSQL
-
-Create a database called `healthcare_db` in PostgreSQL (or change the name in `.env`).
-
-```sql
-CREATE DATABASE healthcare_db;
-```
-
-### 3. Configure environment variables
-
-Edit the `.env` file in the project root and set your PostgreSQL credentials:
-
-```
+```env
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=*
 DB_NAME=healthcare_db
 DB_USER=postgres
 DB_PASSWORD=your_password
@@ -33,117 +144,98 @@ DB_HOST=localhost
 DB_PORT=5432
 ```
 
-### 4. Run migrations and start the server
-
 ```bash
-python manage.py makemigrations
+# 6. Run migrations
+python manage.py makemigrations api
 python manage.py migrate
+
+# 7. Start the server
 python manage.py runserver
 ```
 
-The API will be live at `http://127.0.0.1:8000/api/`.
+Open `http://127.0.0.1:8000` in your browser.
 
 ---
 
-## API Endpoints
+## Usage
 
-### Auth
+### Using the Frontend Tester
 
-| Method | Endpoint              | What it does                    | Auth needed? |
-|--------|-----------------------|---------------------------------|--------------|
-| POST   | /api/auth/register/   | Register (name, email, password)| No           |
-| POST   | /api/auth/login/      | Login, get JWT tokens           | No           |
+1. Open `http://localhost:8000` in your browser
+2. **Register** a new account with name, email, and password
+3. **Login** with your credentials — the JWT token is auto-stored
+4. Use the **API Endpoints** toolbar to test GET requests with one click
+5. Create, edit, and delete **patients**, **doctors**, and **mappings** through the UI
+6. Open the **API Log** panel (floating button, bottom-right) to see all request/response details
 
-### Patients (auth required)
+### Using the API Directly (curl)
 
-| Method | Endpoint              | What it does                    |
-|--------|-----------------------|---------------------------------|
-| POST   | /api/patients/        | Add a patient                   |
-| GET    | /api/patients/        | List your patients              |
-| GET    | /api/patients/\<id\>/ | Get one patient                 |
-| PUT    | /api/patients/\<id\>/ | Update a patient                |
-| DELETE | /api/patients/\<id\>/ | Delete a patient                |
+```bash
+# Register
+curl -X POST http://localhost:8000/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d '{"name": "John", "email": "john@example.com", "password": "mypassword123"}'
 
-### Doctors (auth required)
+# Login
+curl -X POST http://localhost:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com", "password": "mypassword123"}'
+# Save the "access" token from the response
 
-| Method | Endpoint             | What it does                     |
-|--------|----------------------|----------------------------------|
-| POST   | /api/doctors/        | Add a doctor                     |
-| GET    | /api/doctors/        | List all doctors                 |
-| GET    | /api/doctors/\<id\>/ | Get one doctor                   |
-| PUT    | /api/doctors/\<id\>/ | Update a doctor                  |
-| DELETE | /api/doctors/\<id\>/ | Delete a doctor                  |
+# Create a patient (use your token)
+curl -X POST http://localhost:8000/api/patients/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{"name": "Jane Doe", "age": 30, "gender": "Female"}'
 
-### Patient-Doctor Mappings (auth required)
-
-| Method | Endpoint                      | What it does                          |
-|--------|-------------------------------|---------------------------------------|
-| POST   | /api/mappings/                | Assign a doctor to a patient          |
-| GET    | /api/mappings/                | List all mappings                     |
-| GET    | /api/mappings/\<patient_id\>/ | Get all doctors for a patient         |
-| DELETE | /api/mappings/\<id\>/         | Remove a mapping                      |
-
----
-
-## How to use (quick Postman walkthrough)
-
-**1. Register**
-```
-POST /api/auth/register/
-Body: { "name": "John", "email": "john@example.com", "password": "mypassword123" }
-```
-
-**2. Login**
-```
-POST /api/auth/login/
-Body: { "email": "john@example.com", "password": "mypassword123" }
-Response: { "access": "eyJ...", "refresh": "eyJ..." }
-```
-
-**3. Use the access token**
-
-For all other endpoints, add this header:
-```
-Authorization: Bearer <your_access_token>
-```
-
-**4. Create a patient**
-```
-POST /api/patients/
-Body: { "name": "Jane Doe", "age": 30, "gender": "Female" }
-```
-
-**5. Create a doctor**
-```
-POST /api/doctors/
-Body: { "name": "Dr. Smith", "specialization": "Cardiology" }
-```
-
-**6. Assign doctor to patient**
-```
-POST /api/mappings/
-Body: { "patient": 1, "doctor": 1 }
+# List patients
+curl http://localhost:8000/api/patients/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ---
 
-## Project structure
+## Project Structure
 
 ```
+healthcare-backend/
 ├── manage.py
 ├── requirements.txt
-├── .env
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── .gitignore
-├── README.md
-├── healthcare/          # django project config
+├── .env                    # not committed (git-ignored)
+├── healthcare/             # Django project config
 │   ├── settings.py
 │   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
-└── api/                 # single app - all the logic lives here
-    ├── models.py        # Patient, Doctor, PatientDoctorMapping
-    ├── serializers.py   # validation and data shaping
-    ├── views.py         # API logic
-    ├── urls.py          # route definitions
-    └── admin.py         # register models in django admin
+├── api/                    # Main application
+│   ├── models.py           # Patient, Doctor, PatientDoctorMapping
+│   ├── serializers.py      # Validation & data serialization
+│   ├── views.py            # API logic + frontend view
+│   ├── urls.py             # Route definitions
+│   ├── admin.py            # Django admin registration
+│   ├── templates/api/
+│   │   └── index.html      # Frontend tester page
+│   └── static/api/
+│       ├── app.js          # Frontend JavaScript
+│       └── style.css       # Frontend styles
+└── screenshots/            # Screenshots for README
 ```
+
+---
+
+## Environment Variables
+
+| Variable       | Description           | Default                |
+|----------------|-----------------------|------------------------|
+| SECRET_KEY     | Django secret key     | change-me-in-production|
+| DEBUG          | Debug mode            | True                   |
+| ALLOWED_HOSTS  | Allowed hostnames     | *                      |
+| DB_NAME        | PostgreSQL DB name    | healthcare_db          |
+| DB_USER        | PostgreSQL username   | postgres               |
+| DB_PASSWORD    | PostgreSQL password   | postgres               |
+| DB_HOST        | PostgreSQL host       | localhost              |
+| DB_PORT        | PostgreSQL port       | 5432                   |
